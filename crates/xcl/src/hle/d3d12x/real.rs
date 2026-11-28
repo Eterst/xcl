@@ -4860,6 +4860,9 @@ fn driver_compile_identified<R>(kind: &str, bytes: usize, gate: bool, record: Op
     let _blob = BlobSupplied::set(cached);
     let r = build();
     let took = started.elapsed();
+    super::pso_manifest::note(super::pso_manifest::Event::Build {
+        kind, bytes, record, cached, driver_ms: took.as_millis(), waited_ms: waited.as_millis(),
+    });
     if log {
         crate::xlog_info!("D3D12.X: driver compile finish #{sequence}: {kind} PSO, {bytes} B DXIL, {} ms{}", took.as_millis(), gate_note(bytes >= huge_bytes || medium, gated, waited));
     } else if took >= std::time::Duration::from_secs(1) {
