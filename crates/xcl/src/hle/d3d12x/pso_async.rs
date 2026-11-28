@@ -512,7 +512,12 @@ impl Pending {
             let _writer = self.build.eviction_timestamp_writer();
             self.build.last_use_frame.fetch_max(frame, Ordering::Relaxed);
         }
-        if self.key != 0 && !self.used.swap(true, Ordering::Relaxed) {
+        let event = super::pso_manifest::Event::Use {
+            key: self.key,
+            compute: self.compute,
+            ready: self.build.real.load(Ordering::Acquire) != 0,
+        };
+        if self.key != 0 && super::pso_manifest::note_first(&self.used, event) {
             used::note(self.key);
             let on_use = self.on_use.lock().unwrap().take();
             if let Some(f) = on_use {
